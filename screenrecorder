@@ -11,12 +11,12 @@ WF_RECORDER_OPTS=""
 # Insert `--audio` if you want to record audio
 # Specify video codec
 # find available video codecs with `ffmpeg -encoders`
-WF_RECORDER_OPTS="$WF_RECORDER_OPTS --codec libvpx"
+WF_RECORDER_OPTS="$WF_RECORDER_OPTS --codec av1_vaapi"
 # Specify audio codec
 # find available audio codecs with `ffmpeg -codecs`
 # WF_RECORDER_OPTS="$WF_RECORDER_OPTS --audio --codec opus"
 # printf "WF_RECORDER_OPTS=%s\n" "$WF_RECORDER_OPTS"
-VIDEOEXT="webm"
+VIDEOEXT="mp4"
 
 if [ "$1" == "status" ]; then
 	if [ -s "$pidf" ]; then
@@ -39,7 +39,13 @@ elif [ "$1" == "toggle" ]; then
 		vidf="$bf.$VIDEOEXT"
 		logf="$bf.log"
 		if [ "$2" == "fullscreen" ]; then
-			wf-recorder $WF_RECORDER_OPTS --file "$vidf" 1>"$logf" 2>&1 &
+			monitor_info=$(hyprctl -j monitors | jq -r '.[] | select(.focused == true)')
+			w=$(echo $monitor_info | jq -r '.width')
+			h=$(echo $monitor_info | jq -r '.height')
+			x=$(echo $monitor_info | jq -r '.x')
+			y=$(echo $monitor_info | jq -r '.y')
+			g_arg="${x},${y} ${w}x${h}"
+			wf-recorder $WF_RECORDER_OPTS --geometry "$g_arg" --file "$vidf" 1>"$logf" 2>&1 &
 		elif [ "$2" == "region" ]; then
 			sleep 1
 			wf-recorder $WF_RECORDER_OPTS --geometry "$(slurp)" --file "$vidf" 1>"$logf" 2>&1 &
