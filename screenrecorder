@@ -6,7 +6,7 @@
 # Requires wf-recorder: https://github.com/ammen99/wf-recorder
 
 SIGNAL=1
-pidf="/tmp/waybar-screenrecorder"
+pidf="/tmp/ags-screenrecorder"
 WF_RECORDER_OPTS=""
 # Insert `--audio` if you want to record audio
 # Specify video codec
@@ -20,12 +20,9 @@ VIDEOEXT="mp4"
 
 if [ "$1" == "status" ]; then
 	if [ -s "$pidf" ]; then
-		awk 'BEGIN{printf "{\"text\":\"\", \"tooltip\":\"Recording\\n"}
-		NR==1{printf "PID: %s\\n", $0}
-		NR==2{printf "Save to: %s\\n", $0}
-		NR==3{printf "Log to: %s\"}\n", $0}' "$pidf"
+		echo "recording"
 	else
-		printf '{"text":"", "tooltip":"Stopped"}\n'
+		echo "not recording"
 	fi
 
 elif [ "$1" == "toggle" ]; then
@@ -39,15 +36,15 @@ elif [ "$1" == "toggle" ]; then
 		vidf="$bf.$VIDEOEXT"
 		logf="$bf.log"
 		if [ "$2" == "fullscreen" ]; then
-			monitor_info=$(hyprctl -j monitors | jq -r '.[] | select(.focused == true)')
+			monitor_info=$(hyprctl -j monitors | jq -r ".[] | select(.name == \"$3\")")
+			echo "Monitor Selected: $3" > "$logf"
 			w=$(echo $monitor_info | jq -r '.width')
 			h=$(echo $monitor_info | jq -r '.height')
 			x=$(echo $monitor_info | jq -r '.x')
 			y=$(echo $monitor_info | jq -r '.y')
 			g_arg="${x},${y} ${w}x${h}"
-			wf-recorder $WF_RECORDER_OPTS --geometry "$g_arg" --file "$vidf" 1>"$logf" 2>&1 &
+			wf-recorder $WF_RECORDER_OPTS --geometry "$g_arg" --file "$vidf" 1>>"$logf" 2>&1 &
 		elif [ "$2" == "region" ]; then
-			sleep 1
 			wf-recorder $WF_RECORDER_OPTS --geometry "$(slurp)" --file "$vidf" 1>"$logf" 2>&1 &
 		else
 			printf "Argument \$2='%s' not valid (fullscreen/region)" "$2"
@@ -57,9 +54,6 @@ elif [ "$1" == "toggle" ]; then
 		printf "%d\n%s\n%s" "$pid" "$vidf" "$logf" > "$pidf"
 		disown "$pid"
 	fi
-	pkill -RTMIN+$SIGNAL waybar
-
 else
 	printf "ERROR: Argument %s not valid\n" "$1"
 fi
-
