@@ -11,7 +11,7 @@ WF_RECORDER_OPTS=""
 # Insert `--audio` if you want to record audio
 # Specify video codec
 # find available video codecs with `ffmpeg -encoders`
-WF_RECORDER_OPTS="$WF_RECORDER_OPTS -c h264_vaapi -d /dev/dri/renderD128 --bframes 0"
+WF_RECORDER_OPTS="$WF_RECORDER_OPTS --codec av1_vaapi"
 # Specify audio codec
 # find available audio codecs with `ffmpeg -codecs`
 # WF_RECORDER_OPTS="$WF_RECORDER_OPTS --audio --codec opus"
